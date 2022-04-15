@@ -1,11 +1,18 @@
+ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+
+all: clean test
+
 ./target/debug/chibiri9cc: src/*.rs
-	cargo build
+	docker run -v $(ROOT_DIR):/work -w /work --rm -it chibiri9cc_linux /bin/bash -c "/root/.cargo/bin/cargo build"
 
 test: ./target/debug/chibiri9cc
-	./test.sh
+	docker run -v $(ROOT_DIR):/work -w /work --rm -it chibiri9cc_linux /bin/bash -c "./test.sh"
 
 clean:
-	cargo clean
+	docker run -v $(ROOT_DIR):/work -w /work --rm -it chibiri9cc_linux /bin/bash -c "/root/.cargo/bin/cargo clean"
 	rm -f *.o *~ tmp*
 
-.PHONY: test clean
+docker_build:
+	docker build -t chibiri9cc_linux .
+
+.PHONY: all test clean
