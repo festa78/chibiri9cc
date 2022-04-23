@@ -1,9 +1,14 @@
 #!/bin/bash
+set -eEuo pipefail
+
+compiler="$1"
+shift
+
 assert() {
   expected="$1"
   input="$2"
 
-  ./target/debug/chibiri9cc "$input" > tmp.s
+  "${compiler}" "$input" > tmp.s
   cc -o tmp tmp.s
   ./tmp
   actual="$?"
