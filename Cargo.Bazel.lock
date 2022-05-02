@@ -1,0 +1,397 @@
+{
+  "checksum": "f4809b1a7ced592008c838515d876411acad543436f0ae59fa52f80d1ef6d497",
+  "crates": {
+    "chibiri9cc 0.1.0": {
+      "name": "chibiri9cc",
+      "version": "0.1.0",
+      "repository": null,
+      "targets": [
+        {
+          "Binary": {
+            "crate_name": "chibiri9cc",
+            "crate_root": "src/main.rs",
+            "srcs": {
+              "include": [
+                "**/*.rs"
+              ],
+              "exclude": []
+            }
+          }
+        }
+      ],
+      "library_target_name": null,
+      "common_attrs": {
+        "compile_data_glob": [
+          "**"
+        ],
+        "deps": {
+          "common": [
+            {
+              "id": "thiserror 1.0.31",
+              "target": "thiserror"
+            }
+          ],
+          "selects": {}
+        },
+        "edition": "2015",
+        "version": "0.1.0"
+      },
+      "license": null
+    },
+    "direct-cargo-bazel-deps 0.0.1": {
+      "name": "direct-cargo-bazel-deps",
+      "version": "0.0.1",
+      "repository": null,
+      "targets": [
+        {
+          "Library": {
+            "crate_name": "direct_cargo_bazel_deps",
+            "crate_root": ".direct_cargo_bazel_deps.rs",
+            "srcs": {
+              "include": [
+                "**/*.rs"
+              ],
+              "exclude": []
+            }
+          }
+        }
+      ],
+      "library_target_name": "direct_cargo_bazel_deps",
+      "common_attrs": {
+        "compile_data_glob": [
+          "**"
+        ],
+        "edition": "2018",
+        "version": "0.0.1"
+      },
+      "license": null
+    },
+    "proc-macro2 1.0.37": {
+      "name": "proc-macro2",
+      "version": "1.0.37",
+      "repository": {
+        "Http": {
+          "url": "https://crates.io/api/v1/crates/proc-macro2/1.0.37/download",
+          "sha256": "ec757218438d5fda206afc041538b2f6d889286160d649a86a24d37e1235afd1"
+        }
+      },
+      "targets": [
+        {
+          "Library": {
+            "crate_name": "proc_macro2",
+            "crate_root": "src/lib.rs",
+            "srcs": {
+              "include": [
+                "**/*.rs"
+              ],
+              "exclude": []
+            }
+          }
+        },
+        {
+          "BuildScript": {
+            "crate_name": "build_script_build",
+            "crate_root": "build.rs",
+            "srcs": {
+              "include": [
+                "**/*.rs"
+              ],
+              "exclude": []
+            }
+          }
+        }
+      ],
+      "library_target_name": "proc_macro2",
+      "common_attrs": {
+        "compile_data_glob": [
+          "**"
+        ],
+        "crate_features": [
+          "default",
+          "proc-macro"
+        ],
+        "deps": {
+          "common": [
+            {
+              "id": "proc-macro2 1.0.37",
+              "target": "build_script_build"
+            },
+            {
+              "id": "unicode-xid 0.2.2",
+              "target": "unicode_xid"
+            }
+          ],
+          "selects": {}
+        },
+        "edition": "2018",
+        "version": "1.0.37"
+      },
+      "build_script_attrs": {
+        "data_glob": [
+          "**"
+        ]
+      },
+      "license": "MIT OR Apache-2.0"
+    },
+    "quote 1.0.18": {
+      "name": "quote",
+      "version": "1.0.18",
+      "repository": {
+        "Http": {
+          "url": "https://crates.io/api/v1/crates/quote/1.0.18/download",
+          "sha256": "a1feb54ed693b93a84e14094943b84b7c4eae204c512b7ccb95ab0c66d278ad1"
+        }
+      },
+      "targets": [
+        {
+          "Library": {
+            "crate_name": "quote",
+            "crate_root": "src/lib.rs",
+            "srcs": {
+              "include": [
+                "**/*.rs"
+              ],
+              "exclude": []
+            }
+          }
+        }
+      ],
+      "library_target_name": "quote",
+      "common_attrs": {
+        "compile_data_glob": [
+          "**"
+        ],
+        "crate_features": [
+          "default",
+          "proc-macro"
+        ],
+        "deps": {
+          "common": [
+            {
+              "id": "proc-macro2 1.0.37",
+              "target": "proc_macro2"
+            }
+          ],
+          "selects": {}
+        },
+        "edition": "2018",
+        "version": "1.0.18"
+      },
+      "license": "MIT OR Apache-2.0"
+    },
+    "syn 1.0.92": {
+      "name": "syn",
+      "version": "1.0.92",
+      "repository": {
+        "Http": {
+          "url": "https://crates.io/api/v1/crates/syn/1.0.92/download",
+          "sha256": "7ff7c592601f11445996a06f8ad0c27f094a58857c2f89e97974ab9235b92c52"
+        }
+      },
+      "targets": [
+        {
+          "Library": {
+            "crate_name": "syn",
+            "crate_root": "src/lib.rs",
+            "srcs": {
+              "include": [
+                "**/*.rs"
+              ],
+              "exclude": []
+            }
+          }
+        },
+        {
+          "BuildScript": {
+            "crate_name": "build_script_build",
+            "crate_root": "build.rs",
+            "srcs": {
+              "include": [
+                "**/*.rs"
+              ],
+              "exclude": []
+            }
+          }
+        }
+      ],
+      "library_target_name": "syn",
+      "common_attrs": {
+        "compile_data_glob": [
+          "**"
+        ],
+        "crate_features": [
+          "clone-impls",
+          "default",
+          "derive",
+          "parsing",
+          "printing",
+          "proc-macro",
+          "quote"
+        ],
+        "deps": {
+          "common": [
+            {
+              "id": "proc-macro2 1.0.37",
+              "target": "proc_macro2"
+            },
+            {
+              "id": "quote 1.0.18",
+              "target": "quote"
+            },
+            {
+              "id": "syn 1.0.92",
+              "target": "build_script_build"
+            },
+            {
+              "id": "unicode-xid 0.2.2",
+              "target": "unicode_xid"
+            }
+          ],
+          "selects": {}
+        },
+        "edition": "2018",
+        "version": "1.0.92"
+      },
+      "build_script_attrs": {
+        "data_glob": [
+          "**"
+        ]
+      },
+      "license": "MIT OR Apache-2.0"
+    },
+    "thiserror 1.0.31": {
+      "name": "thiserror",
+      "version": "1.0.31",
+      "repository": {
+        "Http": {
+          "url": "https://crates.io/api/v1/crates/thiserror/1.0.31/download",
+          "sha256": "bd829fe32373d27f76265620b5309d0340cb8550f523c1dda251d6298069069a"
+        }
+      },
+      "targets": [
+        {
+          "Library": {
+            "crate_name": "thiserror",
+            "crate_root": "src/lib.rs",
+            "srcs": {
+              "include": [
+                "**/*.rs"
+              ],
+              "exclude": []
+            }
+          }
+        }
+      ],
+      "library_target_name": "thiserror",
+      "common_attrs": {
+        "compile_data_glob": [
+          "**"
+        ],
+        "edition": "2018",
+        "proc_macro_deps": {
+          "common": [
+            {
+              "id": "thiserror-impl 1.0.31",
+              "target": "thiserror_impl"
+            }
+          ],
+          "selects": {}
+        },
+        "version": "1.0.31"
+      },
+      "license": "MIT OR Apache-2.0"
+    },
+    "thiserror-impl 1.0.31": {
+      "name": "thiserror-impl",
+      "version": "1.0.31",
+      "repository": {
+        "Http": {
+          "url": "https://crates.io/api/v1/crates/thiserror-impl/1.0.31/download",
+          "sha256": "0396bc89e626244658bef819e22d0cc459e795a5ebe878e6ec336d1674a8d79a"
+        }
+      },
+      "targets": [
+        {
+          "ProcMacro": {
+            "crate_name": "thiserror_impl",
+            "crate_root": "src/lib.rs",
+            "srcs": {
+              "include": [
+                "**/*.rs"
+              ],
+              "exclude": []
+            }
+          }
+        }
+      ],
+      "library_target_name": "thiserror_impl",
+      "common_attrs": {
+        "compile_data_glob": [
+          "**"
+        ],
+        "deps": {
+          "common": [
+            {
+              "id": "proc-macro2 1.0.37",
+              "target": "proc_macro2"
+            },
+            {
+              "id": "quote 1.0.18",
+              "target": "quote"
+            },
+            {
+              "id": "syn 1.0.92",
+              "target": "syn"
+            }
+          ],
+          "selects": {}
+        },
+        "edition": "2018",
+        "version": "1.0.31"
+      },
+      "license": "MIT OR Apache-2.0"
+    },
+    "unicode-xid 0.2.2": {
+      "name": "unicode-xid",
+      "version": "0.2.2",
+      "repository": {
+        "Http": {
+          "url": "https://crates.io/api/v1/crates/unicode-xid/0.2.2/download",
+          "sha256": "8ccb82d61f80a663efe1f787a51b16b5a51e3314d6ac365b08639f52387b33f3"
+        }
+      },
+      "targets": [
+        {
+          "Library": {
+            "crate_name": "unicode_xid",
+            "crate_root": "src/lib.rs",
+            "srcs": {
+              "include": [
+                "**/*.rs"
+              ],
+              "exclude": []
+            }
+          }
+        }
+      ],
+      "library_target_name": "unicode_xid",
+      "common_attrs": {
+        "compile_data_glob": [
+          "**"
+        ],
+        "crate_features": [
+          "default"
+        ],
+        "edition": "2015",
+        "version": "0.2.2"
+      },
+      "license": "MIT OR Apache-2.0"
+    }
+  },
+  "binary_crates": [],
+  "workspace_members": {
+    "chibiri9cc 0.1.0": "chibiri9cc",
+    "direct-cargo-bazel-deps 0.0.1": ""
+  },
+  "conditions": {}
+}

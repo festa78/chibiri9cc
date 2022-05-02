@@ -1,16 +1,11 @@
 use std::fmt;
 
-#[derive(Debug)]
+use thiserror::Error;
+
+#[derive(Error, Debug)]
 pub enum TokenError {
+    #[error("Unknown token")]
     Unknown,
-}
-
-impl std::error::Error for TokenError {}
-
-impl fmt::Display for TokenError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Tokenize error: {:?}", self)
-    }
 }
 
 #[derive(Debug, PartialEq)]

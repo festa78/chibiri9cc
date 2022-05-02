@@ -1,9 +1,10 @@
 #!/bin/bash
+
 assert() {
   expected="$1"
   input="$2"
 
-  bazel run --ui_event_filters=-info,-stdout,-stderr --noshow_progress //chibiri9cc -- "$input" > tmp.s
+  bazel-bin/chibiri9cc/chibiri9cc "$input" > tmp.s
   cc -o tmp tmp.s
   ./tmp
   actual="$?"
@@ -15,6 +16,9 @@ assert() {
     exit 1
   fi
 }
+
+bazel run @rules_rust//:rustfmt
+bazel build //chibiri9cc
 
 assert 0 0
 assert 42 42
