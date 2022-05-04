@@ -1,55 +1,78 @@
+use thiserror::Error;
+
 use super::tokenize;
 
-pub fn compile(statement: String) {
+#[derive(Error, Debug)]
+enum ParseError {
+    #[error("No token found")]
+    NoTokenFound,
+    #[error("str attribute required for `{:?}`", .0)]
+    StrAttrError(tokenize::TokenKind),
+    #[error("Token does not finish with EoF but `{:?}`", .0)]
+    MissingEoF(tokenize::TokenKind),
+    #[error("Expect ops token but get `{:?}`", .0)]
+    ExpectOps(tokenize::TokenKind),
+    #[error("Expect number token but get `{:?}`", .0)]
+    ExpectNum(tokenize::TokenKind),
+    #[error("Unsupported ops `{:?}`", .0)]
+    UnsupportedOps(tokenize::TokenKind),
+}
+
+pub fn compile(statement: String) -> Result<(), impl std::error::Error> {
+    println!(".intel_syntax noprefix");
+    println!(".globl main");
+    println!("main:");
+
     let mut chars = statement.chars().peekable();
     let token = tokenize::tokenize(&mut chars).unwrap();
     if token.kind == tokenize::TokenKind::Eof {
-        panic!("no token found");
+        return Err(ParseError::NoTokenFound);
     }
 
-    println!("  mov rax, {}", &token.str.expect("token should have str"));
+    match &token.str {
+        Some(str) => println!("  mov rax, {}", str),
+        None => return Err(ParseError::StrAttrError(token.kind)),
+    }
 
-    let mut next_ops_token = *token.next.expect("Invalide statement");
+    if token.next.is_none() {
+        return Err(ParseError::MissingEoF(token.kind));
+    }
+    let mut next_ops_token = *token.next.unwrap();
 
     while next_ops_token.kind != tokenize::TokenKind::Eof {
-        if next_ops_token.kind != tokenize::TokenKind::Reserved {
-            panic!(
-                "unknown token {}, expect ops",
-                next_ops_token.str.expect("token should have str")
-            );
+        if next_ops_token.next.is_none() {
+            return Err(ParseError::MissingEoF(next_ops_token.kind));
         }
+        let next_num_token = *next_ops_token.next.unwrap();
 
-        let next_num_token = *next_ops_token.next.expect("Invalid statement");
         if next_num_token.kind != tokenize::TokenKind::Num {
-            panic!(
-                "unknown token {}, expect number",
-                next_num_token.str.expect("token should have str")
-            );
+            return Err(ParseError::ExpectNum(next_num_token.kind));
         }
 
-        match next_ops_token
-            .str
-            .expect("token should have str")
-            .chars()
-            .next()
-            .unwrap()
-        {
-            '+' => println!(
-                "  add rax, {}",
-                next_num_token.str.expect("token should have str")
-            ),
-            '-' => println!(
-                "  sub rax, {}",
-                next_num_token.str.expect("token should have str")
-            ),
-            _ => panic!(
-                "unsupported ops {}",
-                next_num_token.str.expect("token should have str")
-            ),
+        if next_num_token.str.is_none() {
+            return Err(ParseError::StrAttrError(next_num_token.kind));
         }
 
-        next_ops_token = *next_num_token.next.expect("Invalid statement");
+        if let tokenize::TokenKind::Reserved(reserved_ops) = &next_ops_token.kind {
+            match reserved_ops {
+                tokenize::ReservedKind::Plus => {
+                    println!("  add rax, {}", next_num_token.str.unwrap())
+                }
+                tokenize::ReservedKind::Minus => {
+                    println!("  sub rax, {}", next_num_token.str.unwrap())
+                }
+                _ => return Err(ParseError::UnsupportedOps(next_ops_token.kind)),
+            }
+        } else {
+            return Err(ParseError::ExpectOps(next_ops_token.kind));
+        }
+
+        if next_num_token.next.is_none() {
+            return Err(ParseError::MissingEoF(next_num_token.kind));
+        }
+        next_ops_token = *next_num_token.next.unwrap();
     }
 
     println!("  ret");
+    Ok(())
 }

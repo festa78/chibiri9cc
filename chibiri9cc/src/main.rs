@@ -9,10 +9,6 @@ fn main() {
         std::process::exit(1);
     }
 
-    println!(".intel_syntax noprefix");
-    println!(".globl main");
-    println!("main:");
-
     let statement = args[1].to_string();
-    compile::compile(statement);
+    compile::compile(statement).unwrap()
 }

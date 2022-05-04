@@ -3,18 +3,44 @@ use std::fmt;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-pub enum TokenError {
+enum TokenError {
     #[error("Unknown token")]
     Unknown,
 }
 
 #[derive(Debug, PartialEq)]
 pub enum TokenKind {
-    Reserved, // symbol
-    Num,      // integer
-    Eof,      // end of token
+    Reserved(ReservedKind), // symbol
+    Num,                    // integer
+    Eof,                    // end of token
 }
 
+#[derive(Debug, PartialEq)]
+pub enum ReservedKind {
+    Plus,
+    Minus,
+    Unknown,
+}
+
+impl ReservedKind {
+    pub fn len(&self) -> Result<usize, impl std::error::Error> {
+        match *self {
+            ReservedKind::Plus => Ok(1),
+            ReservedKind::Minus => Ok(1),
+            _ => Err(TokenError::Unknown),
+        }
+    }
+
+    pub fn str(&self) -> Result<String, impl std::error::Error> {
+        match *self {
+            ReservedKind::Plus => Ok('+'.to_string()),
+            ReservedKind::Minus => Ok('-'.to_string()),
+            _ => Err(TokenError::Unknown),
+        }
+    }
+}
+
+#[derive(Debug)]
 pub struct Token {
     pub kind: TokenKind,
     pub next: Option<Box<Token>>,
@@ -48,13 +74,13 @@ fn pop_if_space(chars: &mut std::iter::Peekable<std::str::Chars>) -> usize {
     num_spaces
 }
 
-fn pop_if_ops(chars: &mut std::iter::Peekable<std::str::Chars>) -> Option<String> {
-    if let Some(ops) = chars.peek() {
-        if ops == &'+' || ops == &'-' {
-            return Some(chars.next().unwrap().to_string());
-        }
+fn pop_if_ops(chars: &mut std::iter::Peekable<std::str::Chars>) -> Option<ReservedKind> {
+    match chars.next() {
+        Some('+') => Some(ReservedKind::Plus),
+        Some('-') => Some(ReservedKind::Minus),
+        Some(_) => Some(ReservedKind::Unknown),
+        None => None,
     }
-    None
 }
 
 fn pop_if_number(chars: &mut std::iter::Peekable<std::str::Chars>) -> Option<String> {
@@ -112,14 +138,15 @@ pub fn tokenize(
 
         if let Some(ops) = pop_if_ops(chars) {
             let next_token = tokenize(chars).unwrap();
-            current_idx += ops.len();
+            current_idx += ops.len().unwrap();
+            let ops_str = ops.str().unwrap();
             return Ok(Token {
-                kind: TokenKind::Reserved,
+                kind: TokenKind::Reserved(ops),
                 next: Some(Box::new(Token {
                     location: current_idx + next_token.location,
                     ..next_token
                 })),
-                str: Some(ops),
+                str: Some(ops_str),
                 location: current_idx,
             });
         }
