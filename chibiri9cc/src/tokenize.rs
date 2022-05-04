@@ -19,6 +19,7 @@ pub struct Token {
     pub kind: TokenKind,
     pub next: Option<Box<Token>>,
     pub str: Option<String>,
+    pub location: usize,
 }
 
 impl fmt::Display for Token {
@@ -36,13 +37,15 @@ impl fmt::Display for Token {
     }
 }
 
-fn pop_if_space(chars: &mut std::iter::Peekable<std::str::Chars>) {
+fn pop_if_space(chars: &mut std::iter::Peekable<std::str::Chars>) -> usize {
+    let mut num_spaces: usize = 0;
     if let Some(ops) = chars.peek() {
         if ops == &' ' {
             chars.next();
-            pop_if_space(chars);
+            num_spaces += 1 + pop_if_space(chars);
         }
     }
+    num_spaces
 }
 
 fn pop_if_ops(chars: &mut std::iter::Peekable<std::str::Chars>) -> Option<String> {
@@ -83,31 +86,51 @@ fn pop_if_number(chars: &mut std::iter::Peekable<std::str::Chars>) -> Option<Str
 pub fn tokenize(
     chars: &mut std::iter::Peekable<std::str::Chars>,
 ) -> Result<Token, impl std::error::Error> {
-    pop_if_space(chars);
+    let mut current_idx: usize = 0;
+    let chars_count = chars.clone().count();
 
-    if chars.clone().count() == 0 {
-        return Ok(Token {
-            kind: TokenKind::Eof,
-            next: None,
-            str: None,
-        });
+    while current_idx < chars_count {
+        let num_spaces = pop_if_space(chars);
+        if num_spaces > 0 {
+            current_idx += num_spaces;
+            continue;
+        }
+
+        if let Some(number) = pop_if_number(chars) {
+            let next_token = tokenize(chars).unwrap();
+            current_idx += number.len();
+            return Ok(Token {
+                kind: TokenKind::Num,
+                next: Some(Box::new(Token {
+                    location: current_idx + next_token.location,
+                    ..next_token
+                })),
+                str: Some(number),
+                location: current_idx,
+            });
+        }
+
+        if let Some(ops) = pop_if_ops(chars) {
+            let next_token = tokenize(chars).unwrap();
+            current_idx += ops.len();
+            return Ok(Token {
+                kind: TokenKind::Reserved,
+                next: Some(Box::new(Token {
+                    location: current_idx + next_token.location,
+                    ..next_token
+                })),
+                str: Some(ops),
+                location: current_idx,
+            });
+        }
+
+        return Err(TokenError::Unknown);
     }
 
-    if let Some(number) = pop_if_number(chars) {
-        return Ok(Token {
-            kind: TokenKind::Num,
-            next: Some(Box::new(tokenize(chars).unwrap())),
-            str: Some(number),
-        });
-    }
-
-    if let Some(ops) = pop_if_ops(chars) {
-        return Ok(Token {
-            kind: TokenKind::Reserved,
-            next: Some(Box::new(tokenize(chars).unwrap())),
-            str: Some(ops),
-        });
-    }
-
-    Err(TokenError::Unknown)
+    Ok(Token {
+        kind: TokenKind::Eof,
+        next: None,
+        str: None,
+        location: current_idx,
+    })
 }
