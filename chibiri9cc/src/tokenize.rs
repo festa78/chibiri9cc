@@ -83,6 +83,8 @@ fn pop_if_number(chars: &mut std::iter::Peekable<std::str::Chars>) -> Option<Str
 pub fn tokenize(
     chars: &mut std::iter::Peekable<std::str::Chars>,
 ) -> Result<Token, impl std::error::Error> {
+    pop_if_space(chars);
+
     if chars.clone().count() == 0 {
         return Ok(Token {
             kind: TokenKind::Eof,
@@ -90,8 +92,6 @@ pub fn tokenize(
             str: None,
         });
     }
-
-    pop_if_space(chars);
 
     if let Some(number) = pop_if_number(chars) {
         return Ok(Token {
