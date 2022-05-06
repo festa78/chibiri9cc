@@ -1,4 +1,5 @@
 mod compile;
+mod statement;
 mod tokenize;
 
 fn main() {

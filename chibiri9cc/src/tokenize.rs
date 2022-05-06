@@ -2,16 +2,14 @@ use std::fmt;
 
 use thiserror::Error;
 
+use super::statement;
+
 #[derive(Error, Debug)]
 pub enum TokenizerError {
     #[error("Start index is invalid. The statement has length {:?} but got intex {:?}", .0, .1)]
     InvalidIndex(usize, usize),
-    #[error("{}\n{} Unknown token", .0, {
-        let mut pointer = (0..(*.1 as i32)).map(|_| ' ').collect::<String>();
-        pointer.push('^');
-        pointer
-    })]
-    UnknownToken(String, usize),
+    #[error("{}Unknown token found", .0.str())]
+    UnknownToken(statement::StatementWithLocation),
 }
 
 #[derive(Debug, PartialEq)]
@@ -48,7 +46,7 @@ pub struct Token {
     pub kind: TokenKind,
     pub next: Option<Box<Token>>,
     pub str: Option<String>,
-    pub location: usize,
+    pub location: statement::StatementWithLocation,
 }
 
 impl fmt::Display for Token {
@@ -121,7 +119,10 @@ pub fn tokenize(statement: &str, start_index: usize) -> Result<Token, TokenizerE
             kind: TokenKind::Eof,
             next: None,
             str: None,
-            location: start_index,
+            location: statement::StatementWithLocation {
+                statement: statement.to_string(),
+                index: start_index,
+            },
         });
     }
     let mut chars = statement[start_index..].chars().peekable();
@@ -135,12 +136,12 @@ pub fn tokenize(statement: &str, start_index: usize) -> Result<Token, TokenizerE
         let next_token = tokenize(statement, next_location)?;
         return Ok(Token {
             kind: TokenKind::Num,
-            next: Some(Box::new(Token {
-                location: next_location,
-                ..next_token
-            })),
+            next: Some(Box::new(next_token)),
             str: Some(number),
-            location: start_index,
+            location: statement::StatementWithLocation {
+                statement: statement.to_string(),
+                index: start_index,
+            },
         });
     }
 
@@ -150,17 +151,19 @@ pub fn tokenize(statement: &str, start_index: usize) -> Result<Token, TokenizerE
         let ops_str = ops.str();
         return Ok(Token {
             kind: TokenKind::Reserved(ops),
-            next: Some(Box::new(Token {
-                location: next_location,
-                ..next_token
-            })),
+            next: Some(Box::new(next_token)),
             str: Some(ops_str),
-            location: start_index,
+            location: statement::StatementWithLocation {
+                statement: statement.to_string(),
+                index: start_index,
+            },
         });
     }
 
     Err(TokenizerError::UnknownToken(
-        statement.to_string(),
-        start_index,
+        statement::StatementWithLocation {
+            statement: statement.to_string(),
+            index: start_index,
+        },
     ))
 }

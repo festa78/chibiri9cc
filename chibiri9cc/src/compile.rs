@@ -1,19 +1,20 @@
 use thiserror::Error;
 
+use super::statement;
 use super::tokenize;
 
 #[derive(Error, Debug)]
 pub enum CompileError {
     #[error("No token found")]
     NoTokenFound,
-    #[error("str attribute required for `{:?}`", .0)]
-    StrAttrError(tokenize::TokenKind),
-    #[error("Token does not finish with EoF but `{:?}`", .0)]
-    MissingEoF(tokenize::TokenKind),
-    #[error("Expect ops token but get `{:?}`", .0)]
-    ExpectOps(tokenize::TokenKind),
-    #[error("Expect number token but get `{:?}`", .0)]
-    ExpectNum(tokenize::TokenKind),
+    #[error("{}str attribute required for `{:?}`", .0.str(), .1)]
+    StrAttrError(statement::StatementWithLocation, tokenize::TokenKind),
+    #[error("{}Token does not finish with EoF but `{:?}`", .0.str(), .1)]
+    MissingEoF(statement::StatementWithLocation, tokenize::TokenKind),
+    #[error("{}Expect ops token but get `{:?}`", .0.str(), .1)]
+    ExpectOps(statement::StatementWithLocation, tokenize::TokenKind),
+    #[error("{}Expect number token but get `{:?}`", .0.str(), .1)]
+    ExpectNum(statement::StatementWithLocation, tokenize::TokenKind),
 }
 
 pub fn compile(token: tokenize::Token) -> Result<(), CompileError> {
@@ -27,29 +28,38 @@ pub fn compile(token: tokenize::Token) -> Result<(), CompileError> {
 
     match &token.str {
         Some(str) => println!("  mov rax, {}", str),
-        None => return Err(CompileError::StrAttrError(token.kind)),
+        None => return Err(CompileError::StrAttrError(token.location, token.kind)),
     }
 
     if token.next.is_none() {
-        return Err(CompileError::MissingEoF(token.kind));
+        return Err(CompileError::MissingEoF(token.location, token.kind));
     }
     let mut next_ops_token = *token.next.unwrap();
 
     while next_ops_token.kind != tokenize::TokenKind::Eof {
         if next_ops_token.next.is_none() {
-            return Err(CompileError::MissingEoF(next_ops_token.kind));
+            return Err(CompileError::MissingEoF(
+                next_ops_token.location,
+                next_ops_token.kind,
+            ));
         }
         let next_num_token = *next_ops_token.next.unwrap();
 
-        if next_num_token.kind != tokenize::TokenKind::Num {
-            return Err(CompileError::ExpectNum(next_num_token.kind));
-        }
-
-        if next_num_token.str.is_none() {
-            return Err(CompileError::StrAttrError(next_num_token.kind));
-        }
-
         if let tokenize::TokenKind::Reserved(reserved_ops) = &next_ops_token.kind {
+            if next_num_token.kind != tokenize::TokenKind::Num {
+                return Err(CompileError::ExpectNum(
+                    next_num_token.location,
+                    next_num_token.kind,
+                ));
+            }
+
+            if next_num_token.str.is_none() {
+                return Err(CompileError::StrAttrError(
+                    next_num_token.location,
+                    next_num_token.kind,
+                ));
+            }
+
             match reserved_ops {
                 tokenize::ReservedKind::Plus => {
                     println!("  add rax, {}", next_num_token.str.unwrap())
@@ -59,11 +69,17 @@ pub fn compile(token: tokenize::Token) -> Result<(), CompileError> {
                 }
             }
         } else {
-            return Err(CompileError::ExpectOps(next_ops_token.kind));
+            return Err(CompileError::ExpectOps(
+                next_ops_token.location,
+                next_ops_token.kind,
+            ));
         }
 
         if next_num_token.next.is_none() {
-            return Err(CompileError::MissingEoF(next_num_token.kind));
+            return Err(CompileError::MissingEoF(
+                next_num_token.location,
+                next_num_token.kind,
+            ));
         }
         next_ops_token = *next_num_token.next.unwrap();
     }
