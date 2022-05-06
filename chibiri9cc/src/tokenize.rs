@@ -21,23 +21,20 @@ pub enum TokenKind {
 pub enum ReservedKind {
     Plus,
     Minus,
-    Unknown,
 }
 
 impl ReservedKind {
-    pub fn len(&self) -> Result<usize, TokenizerError> {
+    pub fn len(&self) -> usize {
         match *self {
-            ReservedKind::Plus => Ok(1),
-            ReservedKind::Minus => Ok(1),
-            _ => Err(TokenizerError::UnknownToken),
+            ReservedKind::Plus => 1,
+            ReservedKind::Minus => 1,
         }
     }
 
-    pub fn str(&self) -> Result<String, TokenizerError> {
+    pub fn str(&self) -> String {
         match *self {
-            ReservedKind::Plus => Ok('+'.to_string()),
-            ReservedKind::Minus => Ok('-'.to_string()),
-            _ => Err(TokenizerError::UnknownToken),
+            ReservedKind::Plus => '+'.to_string(),
+            ReservedKind::Minus => '-'.to_string(),
         }
     }
 }
@@ -80,8 +77,7 @@ fn pop_if_ops(chars: &mut std::iter::Peekable<std::str::Chars>) -> Option<Reserv
     match chars.next() {
         Some('+') => Some(ReservedKind::Plus),
         Some('-') => Some(ReservedKind::Minus),
-        Some(_) => Some(ReservedKind::Unknown),
-        None => None,
+        _ => None,
     }
 }
 
@@ -145,9 +141,9 @@ pub fn tokenize(statement: &str, start_index: usize) -> Result<Token, TokenizerE
     }
 
     if let Some(ops) = pop_if_ops(&mut chars) {
-        let next_location = start_index + ops.len().unwrap();
+        let next_location = start_index + ops.len();
         let next_token = tokenize(statement, next_location).unwrap();
-        let ops_str = ops.str().unwrap();
+        let ops_str = ops.str();
         return Ok(Token {
             kind: TokenKind::Reserved(ops),
             next: Some(Box::new(Token {

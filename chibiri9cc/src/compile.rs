@@ -14,8 +14,6 @@ pub enum CompileError {
     ExpectOps(tokenize::TokenKind),
     #[error("Expect number token but get `{:?}`", .0)]
     ExpectNum(tokenize::TokenKind),
-    #[error("Unsupported ops `{:?}`", .0)]
-    UnsupportedOps(tokenize::TokenKind),
 }
 
 pub fn compile(token: tokenize::Token) -> Result<(), CompileError> {
@@ -59,7 +57,6 @@ pub fn compile(token: tokenize::Token) -> Result<(), CompileError> {
                 tokenize::ReservedKind::Minus => {
                     println!("  sub rax, {}", next_num_token.str.unwrap())
                 }
-                _ => return Err(CompileError::UnsupportedOps(next_ops_token.kind)),
             }
         } else {
             return Err(CompileError::ExpectOps(next_ops_token.kind));
