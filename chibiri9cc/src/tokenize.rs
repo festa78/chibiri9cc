@@ -6,8 +6,12 @@ use thiserror::Error;
 pub enum TokenizerError {
     #[error("Start index is invalid. The statement has length {:?} but got intex {:?}", .0, .1)]
     InvalidIndex(usize, usize),
-    #[error("Unknown token")]
-    UnknownToken,
+    #[error("{}\n{} Unknown token", .0, {
+        let mut pointer = (0..(*.1 as i32)).map(|_| ' ').collect::<String>();
+        pointer.push('^');
+        pointer
+    })]
+    UnknownToken(String, usize),
 }
 
 #[derive(Debug, PartialEq)]
@@ -128,7 +132,7 @@ pub fn tokenize(statement: &str, start_index: usize) -> Result<Token, TokenizerE
 
     if let Some(number) = pop_if_number(&mut chars) {
         let next_location = start_index + number.len();
-        let next_token = tokenize(statement, next_location).unwrap();
+        let next_token = tokenize(statement, next_location)?;
         return Ok(Token {
             kind: TokenKind::Num,
             next: Some(Box::new(Token {
@@ -142,7 +146,7 @@ pub fn tokenize(statement: &str, start_index: usize) -> Result<Token, TokenizerE
 
     if let Some(ops) = pop_if_ops(&mut chars) {
         let next_location = start_index + ops.len();
-        let next_token = tokenize(statement, next_location).unwrap();
+        let next_token = tokenize(statement, next_location)?;
         let ops_str = ops.str();
         return Ok(Token {
             kind: TokenKind::Reserved(ops),
@@ -155,5 +159,8 @@ pub fn tokenize(statement: &str, start_index: usize) -> Result<Token, TokenizerE
         });
     }
 
-    Err(TokenizerError::UnknownToken)
+    Err(TokenizerError::UnknownToken(
+        statement.to_string(),
+        start_index,
+    ))
 }

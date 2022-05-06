@@ -10,5 +10,11 @@ fn main() {
     }
 
     let statement = args[1].to_string();
-    compile::compile(tokenize::tokenize(&statement, 0).unwrap()).unwrap()
+    match tokenize::tokenize(&statement, 0) {
+        Ok(token) => match compile::compile(token) {
+            Ok(()) => (),
+            Err(err) => eprintln!("{}", err),
+        },
+        Err(err) => eprintln!("{}", err),
+    }
 }
