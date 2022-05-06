@@ -18,13 +18,11 @@ enum ParseError {
     UnsupportedOps(tokenize::TokenKind),
 }
 
-pub fn compile(statement: String) -> Result<(), impl std::error::Error> {
+pub fn compile(token: tokenize::Token) -> Result<(), impl std::error::Error> {
     println!(".intel_syntax noprefix");
     println!(".globl main");
     println!("main:");
 
-    let mut chars = statement.chars().peekable();
-    let token = tokenize::tokenize(&mut chars).unwrap();
     if token.kind == tokenize::TokenKind::Eof {
         return Err(ParseError::NoTokenFound);
     }
