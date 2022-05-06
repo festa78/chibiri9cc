@@ -10,6 +10,5 @@ fn main() {
     }
 
     let statement = args[1].to_string();
-
-    compile::compile(tokenize::tokenize(&mut statement.chars().peekable()).unwrap()).unwrap()
+    compile::compile(tokenize::tokenize(&statement, 0).unwrap()).unwrap()
 }

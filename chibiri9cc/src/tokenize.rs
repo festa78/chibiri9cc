@@ -3,9 +3,11 @@ use std::fmt;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-enum TokenError {
+pub enum TokenizerError {
+    #[error("Start index is invalid. The statement has length {:?} but got intex {:?}", .0, .1)]
+    InvalidIndex(usize, usize),
     #[error("Unknown token")]
-    Unknown,
+    UnknownToken,
 }
 
 #[derive(Debug, PartialEq)]
@@ -23,19 +25,19 @@ pub enum ReservedKind {
 }
 
 impl ReservedKind {
-    pub fn len(&self) -> Result<usize, impl std::error::Error> {
+    pub fn len(&self) -> Result<usize, TokenizerError> {
         match *self {
             ReservedKind::Plus => Ok(1),
             ReservedKind::Minus => Ok(1),
-            _ => Err(TokenError::Unknown),
+            _ => Err(TokenizerError::UnknownToken),
         }
     }
 
-    pub fn str(&self) -> Result<String, impl std::error::Error> {
+    pub fn str(&self) -> Result<String, TokenizerError> {
         match *self {
             ReservedKind::Plus => Ok('+'.to_string()),
             ReservedKind::Minus => Ok('-'.to_string()),
-            _ => Err(TokenError::Unknown),
+            _ => Err(TokenizerError::UnknownToken),
         }
     }
 }
@@ -109,55 +111,53 @@ fn pop_if_number(chars: &mut std::iter::Peekable<std::str::Chars>) -> Option<Str
     None
 }
 
-pub fn tokenize(
-    chars: &mut std::iter::Peekable<std::str::Chars>,
-) -> Result<Token, impl std::error::Error> {
-    let mut current_idx: usize = 0;
-    let chars_count = chars.clone().count();
-
-    while current_idx < chars_count {
-        let num_spaces = pop_if_space(chars);
-        if num_spaces > 0 {
-            current_idx += num_spaces;
-            continue;
-        }
-
-        if let Some(number) = pop_if_number(chars) {
-            let next_token = tokenize(chars).unwrap();
-            current_idx += number.len();
-            return Ok(Token {
-                kind: TokenKind::Num,
-                next: Some(Box::new(Token {
-                    location: current_idx + next_token.location,
-                    ..next_token
-                })),
-                str: Some(number),
-                location: current_idx,
-            });
-        }
-
-        if let Some(ops) = pop_if_ops(chars) {
-            let next_token = tokenize(chars).unwrap();
-            current_idx += ops.len().unwrap();
-            let ops_str = ops.str().unwrap();
-            return Ok(Token {
-                kind: TokenKind::Reserved(ops),
-                next: Some(Box::new(Token {
-                    location: current_idx + next_token.location,
-                    ..next_token
-                })),
-                str: Some(ops_str),
-                location: current_idx,
-            });
-        }
-
-        return Err(TokenError::Unknown);
+pub fn tokenize(statement: &str, start_index: usize) -> Result<Token, TokenizerError> {
+    if statement.len() < start_index {
+        return Err(TokenizerError::InvalidIndex(statement.len(), start_index));
     }
 
-    Ok(Token {
-        kind: TokenKind::Eof,
-        next: None,
-        str: None,
-        location: current_idx,
-    })
+    if statement.len() == start_index {
+        return Ok(Token {
+            kind: TokenKind::Eof,
+            next: None,
+            str: None,
+            location: start_index,
+        });
+    }
+    let mut chars = statement[start_index..].chars().peekable();
+    let num_spaces = pop_if_space(&mut chars);
+    if num_spaces > 0 {
+        return tokenize(statement, start_index + num_spaces);
+    }
+
+    if let Some(number) = pop_if_number(&mut chars) {
+        let next_location = start_index + number.len();
+        let next_token = tokenize(statement, next_location).unwrap();
+        return Ok(Token {
+            kind: TokenKind::Num,
+            next: Some(Box::new(Token {
+                location: next_location,
+                ..next_token
+            })),
+            str: Some(number),
+            location: start_index,
+        });
+    }
+
+    if let Some(ops) = pop_if_ops(&mut chars) {
+        let next_location = start_index + ops.len().unwrap();
+        let next_token = tokenize(statement, next_location).unwrap();
+        let ops_str = ops.str().unwrap();
+        return Ok(Token {
+            kind: TokenKind::Reserved(ops),
+            next: Some(Box::new(Token {
+                location: next_location,
+                ..next_token
+            })),
+            str: Some(ops_str),
+            location: start_index,
+        });
+    }
+
+    Err(TokenizerError::UnknownToken)
 }
