@@ -1,6 +1,6 @@
 #[derive(Debug)]
 pub struct StatementWithLocation {
-    pub statement: String,
+    pub statement: std::rc::Rc<String>,
     pub index: usize,
 }
 

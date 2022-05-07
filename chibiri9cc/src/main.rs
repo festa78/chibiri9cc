@@ -11,11 +11,13 @@ fn main() {
     }
 
     let statement = args[1].to_string();
-    match tokenize::tokenize(&statement, 0) {
-        Ok(token) => match compile::compile(token) {
-            Ok(()) => (),
-            Err(err) => eprintln!("{}", err),
-        },
-        Err(err) => eprintln!("{}", err),
+    let token = tokenize::tokenize(std::rc::Rc::new(statement), 0);
+    if let Err(err) = token {
+        eprint!("{}", err);
+        std::process::exit(1);
+    }
+    if let Err(err) = compile::compile(token.unwrap()) {
+        eprint!("{}", err);
+        std::process::exit(1);
     }
 }

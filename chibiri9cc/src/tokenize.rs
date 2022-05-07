@@ -109,7 +109,10 @@ fn pop_if_number(chars: &mut std::iter::Peekable<std::str::Chars>) -> Option<Str
     None
 }
 
-pub fn tokenize(statement: &str, start_index: usize) -> Result<Token, TokenizerError> {
+pub fn tokenize(
+    statement: std::rc::Rc<String>,
+    start_index: usize,
+) -> Result<Token, TokenizerError> {
     if statement.len() < start_index {
         return Err(TokenizerError::InvalidIndex(statement.len(), start_index));
     }
@@ -120,7 +123,7 @@ pub fn tokenize(statement: &str, start_index: usize) -> Result<Token, TokenizerE
             next: None,
             str: None,
             location: statement::StatementWithLocation {
-                statement: statement.to_string(),
+                statement: std::rc::Rc::clone(&statement),
                 index: start_index,
             },
         });
@@ -133,13 +136,13 @@ pub fn tokenize(statement: &str, start_index: usize) -> Result<Token, TokenizerE
 
     if let Some(number) = pop_if_number(&mut chars) {
         let next_location = start_index + number.len();
-        let next_token = tokenize(statement, next_location)?;
+        let next_token = tokenize(std::rc::Rc::clone(&statement), next_location)?;
         return Ok(Token {
             kind: TokenKind::Num,
             next: Some(Box::new(next_token)),
             str: Some(number),
             location: statement::StatementWithLocation {
-                statement: statement.to_string(),
+                statement: std::rc::Rc::clone(&statement),
                 index: start_index,
             },
         });
@@ -147,14 +150,14 @@ pub fn tokenize(statement: &str, start_index: usize) -> Result<Token, TokenizerE
 
     if let Some(ops) = pop_if_ops(&mut chars) {
         let next_location = start_index + ops.len();
-        let next_token = tokenize(statement, next_location)?;
+        let next_token = tokenize(std::rc::Rc::clone(&statement), next_location)?;
         let ops_str = ops.str();
         return Ok(Token {
             kind: TokenKind::Reserved(ops),
             next: Some(Box::new(next_token)),
             str: Some(ops_str),
             location: statement::StatementWithLocation {
-                statement: statement.to_string(),
+                statement: std::rc::Rc::clone(&statement),
                 index: start_index,
             },
         });
@@ -162,7 +165,7 @@ pub fn tokenize(statement: &str, start_index: usize) -> Result<Token, TokenizerE
 
     Err(TokenizerError::UnknownToken(
         statement::StatementWithLocation {
-            statement: statement.to_string(),
+            statement: std::rc::Rc::clone(&statement),
             index: start_index,
         },
     ))
