@@ -13,6 +13,8 @@ pub enum CompileError {
     MissingEoF(statement::StatementWithLocation, tokenize::TokenKind),
     #[error("{}Expect ops token but get `{:?}`", .0.str(), .1)]
     ExpectOps(statement::StatementWithLocation, tokenize::TokenKind),
+    #[error("{}Unsupported ops `{:?}`", .0.str(), .1)]
+    UnsupportedOps(statement::StatementWithLocation, tokenize::TokenKind),
     #[error("{}Expect number token but get `{:?}`", .0.str(), .1)]
     ExpectNum(statement::StatementWithLocation, tokenize::TokenKind),
 }
@@ -66,6 +68,12 @@ pub fn compile(token: tokenize::Token) -> Result<(), CompileError> {
                 }
                 tokenize::ReservedKind::Minus => {
                     println!("  sub rax, {}", next_num_token.str.unwrap())
+                }
+                _ => {
+                    return Err(CompileError::UnsupportedOps(
+                        next_ops_token.location,
+                        next_ops_token.kind,
+                    ));
                 }
             }
         } else {

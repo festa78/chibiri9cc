@@ -12,17 +12,21 @@ pub enum TokenizerError {
     UnknownToken(statement::StatementWithLocation),
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum TokenKind {
     Reserved(ReservedKind), // symbol
     Num,                    // integer
     Eof,                    // end of token
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum ReservedKind {
     Plus,
     Minus,
+    Mul,
+    Div,
+    ParenLeft,
+    ParenRight,
 }
 
 impl ReservedKind {
@@ -30,6 +34,10 @@ impl ReservedKind {
         match *self {
             ReservedKind::Plus => 1,
             ReservedKind::Minus => 1,
+            ReservedKind::Mul => 1,
+            ReservedKind::Div => 1,
+            ReservedKind::ParenLeft => 1,
+            ReservedKind::ParenRight => 1,
         }
     }
 
@@ -37,11 +45,15 @@ impl ReservedKind {
         match *self {
             ReservedKind::Plus => '+'.to_string(),
             ReservedKind::Minus => '-'.to_string(),
+            ReservedKind::Mul => '*'.to_string(),
+            ReservedKind::Div => '/'.to_string(),
+            ReservedKind::ParenLeft => '('.to_string(),
+            ReservedKind::ParenRight => ')'.to_string(),
         }
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Token {
     pub kind: TokenKind,
     pub next: Option<Box<Token>>,
@@ -64,6 +76,48 @@ impl fmt::Display for Token {
     }
 }
 
+pub fn consume_ops(token: &mut Token, reserved_kind: ReservedKind) -> bool {
+    if token.kind == TokenKind::Reserved(reserved_kind) {
+        let next_token = token.next.as_ref().unwrap().clone();
+        token.kind = next_token.kind;
+        token.next = next_token.next;
+        token.str = next_token.str;
+        token.location = next_token.location;
+        return true;
+    }
+    false
+}
+
+pub fn expect_ops(token: &mut Token, reserved_kind: ReservedKind) -> Result<(), TokenizerError> {
+    if token.kind != TokenKind::Reserved(reserved_kind) {
+        return Err(TokenizerError::UnknownToken(token.location.clone()));
+    }
+
+    let next_token = token.next.as_ref().unwrap().clone();
+    token.kind = next_token.kind;
+    token.next = next_token.next;
+    token.str = next_token.str;
+    token.location = next_token.location;
+
+    Ok(())
+}
+
+pub fn expect_number(token: &mut Token) -> Result<i32, TokenizerError> {
+    if token.kind != TokenKind::Num {
+        return Err(TokenizerError::UnknownToken(token.location.clone()));
+    }
+
+    let number = token.str.clone().unwrap().parse().unwrap();
+
+    let next_token = token.next.as_ref().unwrap().clone();
+    token.kind = next_token.kind;
+    token.next = next_token.next;
+    token.str = next_token.str;
+    token.location = next_token.location;
+
+    Ok(number)
+}
+
 fn pop_if_space(chars: &mut std::iter::Peekable<std::str::Chars>) -> usize {
     let mut num_spaces: usize = 0;
     if let Some(ops) = chars.peek() {
@@ -79,6 +133,10 @@ fn pop_if_ops(chars: &mut std::iter::Peekable<std::str::Chars>) -> Option<Reserv
     match chars.next() {
         Some('+') => Some(ReservedKind::Plus),
         Some('-') => Some(ReservedKind::Minus),
+        Some('*') => Some(ReservedKind::Mul),
+        Some('/') => Some(ReservedKind::Div),
+        Some('(') => Some(ReservedKind::ParenLeft),
+        Some(')') => Some(ReservedKind::ParenRight),
         _ => None,
     }
 }

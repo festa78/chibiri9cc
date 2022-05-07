@@ -1,4 +1,6 @@
-mod compile;
+// mod compile;
+mod gen;
+mod parser;
 mod statement;
 mod tokenize;
 
@@ -16,8 +18,22 @@ fn main() {
         eprint!("{}", err);
         std::process::exit(1);
     }
-    if let Err(err) = compile::compile(token.unwrap()) {
+
+    let node = parser::expr(&mut token.unwrap());
+    if let Err(err) = node {
         eprint!("{}", err);
         std::process::exit(1);
     }
+
+    println!(".intel_syntax noprefix");
+    println!(".globl main");
+    println!("main:");
+
+    if let Err(err) = gen::gen(node.unwrap()) {
+        eprint!("{}", err);
+        std::process::exit(1);
+    }
+
+    println!("  pop rax");
+    println!("  ret");
 }

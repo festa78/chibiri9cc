@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct StatementWithLocation {
     pub statement: std::rc::Rc<String>,
     pub index: usize,
