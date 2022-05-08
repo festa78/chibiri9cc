@@ -8,30 +8,64 @@ pub enum GeneratorError {
     UnsupportedNode(parser::NodeKind),
 }
 
+fn push() {
+    println!("  push %rax");
+}
+
+fn pop(arg: String) {
+    println!("  pop {}", arg);
+}
+
 pub fn gen(node: parser::Node) -> Result<(), GeneratorError> {
-    if node.kind == parser::NodeKind::Num {
-        println!("  push {}", node.val.unwrap());
-        return Ok(());
+    match node.kind {
+        parser::NodeKind::Num => {
+            println!("  mov ${}, %rax", node.val.unwrap());
+            return Ok(());
+        }
+        parser::NodeKind::Neg => {
+            gen(*node.lhs.unwrap())?;
+            println!("  neg %rax");
+            return Ok(());
+        }
+        _ => {}
     }
+    if node.kind == parser::NodeKind::Num {}
 
-    gen(*node.lhs.unwrap())?;
     gen(*node.rhs.unwrap())?;
-
-    println!("  pop rdi");
-    println!("  pop rax");
+    push();
+    gen(*node.lhs.unwrap())?;
+    pop("%rdi".to_string());
 
     match node.kind {
-        parser::NodeKind::Add => println!("  add rax, rdi"),
-        parser::NodeKind::Sub => println!("  sub rax, rdi"),
-        parser::NodeKind::Mul => println!("  imul rax, rdi"),
+        parser::NodeKind::Add => println!("  add %rdi, %rax"),
+        parser::NodeKind::Sub => println!("  sub %rdi, %rax"),
+        parser::NodeKind::Mul => println!("  imul %rdi, %rax"),
         parser::NodeKind::Div => {
             println!("  cqo");
-            println!("  idiv rdi");
+            println!("  idiv %rdi");
+        }
+        parser::NodeKind::Eq => {
+            println!("  cmp %rdi, %rax");
+            println!("  sete %al");
+            println!("  movzb %al, %rax");
+        }
+        parser::NodeKind::Ne => {
+            println!("  cmp %rdi, %rax");
+            println!("  setne %al");
+            println!("  movzb %al, %rax");
+        }
+        parser::NodeKind::Lt => {
+            println!("  cmp %rdi, %rax");
+            println!("  setl %al");
+            println!("  movzb %al, %rax");
+        }
+        parser::NodeKind::Le => {
+            println!("  cmp %rdi, %rax");
+            println!("  setle %al");
+            println!("  movzb %al, %rax");
         }
         _ => return Err(GeneratorError::UnsupportedNode(node.kind)),
     }
-
-    println!("  push rax");
 
     Ok(())
 }

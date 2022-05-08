@@ -25,8 +25,8 @@ fn main() {
         std::process::exit(1);
     }
 
-    println!(".intel_syntax noprefix");
-    println!(".globl main");
+    // println!(".intel_syntax noprefix");
+    println!("  .globl main");
     println!("main:");
 
     if let Err(err) = gen::gen(node.unwrap()) {
@@ -34,6 +34,5 @@ fn main() {
         std::process::exit(1);
     }
 
-    println!("  pop rax");
     println!("  ret");
 }

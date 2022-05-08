@@ -6,6 +6,11 @@ pub enum NodeKind {
     Sub,
     Mul,
     Div,
+    Neg,
+    Eq,
+    Ne,
+    Lt,
+    Le,
     Num,
 }
 
@@ -32,14 +37,61 @@ fn new_binary(kind: NodeKind, lhs: Node, rhs: Node) -> Node {
     node
 }
 
+fn new_unary(kind: NodeKind, expr: Node) -> Node {
+    let mut node = new_node(kind);
+    node.lhs = Some(Box::new(expr));
+    node
+}
+
 fn new_num(val: i32) -> Node {
     let mut node = new_node(NodeKind::Num);
     node.val = Some(val);
     node
 }
 
-// expr = mul ("+" mul | "-" mul)*
+// expr = equality
 pub fn expr(token: &mut tokenize::Token) -> Result<Node, Box<dyn std::error::Error>> {
+    equality(token)
+}
+
+// equality = relation ("==" relational | "!=" relational)*
+fn equality(token: &mut tokenize::Token) -> Result<Node, Box<dyn std::error::Error>> {
+    let mut node = relational(token)?;
+
+    loop {
+        if tokenize::consume_ops(token, tokenize::ReservedKind::Equal) {
+            node = new_binary(NodeKind::Eq, node, relational(token)?);
+        } else if tokenize::consume_ops(token, tokenize::ReservedKind::NotEqual) {
+            node = new_binary(NodeKind::Ne, node, relational(token)?);
+        } else {
+            break;
+        }
+    }
+    Ok(node)
+}
+
+// relational = add ("<" add | "<=" add | ">" add | ">=" add)*
+fn relational(token: &mut tokenize::Token) -> Result<Node, Box<dyn std::error::Error>> {
+    let mut node = add(token)?;
+
+    loop {
+        if tokenize::consume_ops(token, tokenize::ReservedKind::Less) {
+            node = new_binary(NodeKind::Lt, node, add(token)?);
+        } else if tokenize::consume_ops(token, tokenize::ReservedKind::LessEqual) {
+            node = new_binary(NodeKind::Le, node, add(token)?);
+        } else if tokenize::consume_ops(token, tokenize::ReservedKind::Larger) {
+            node = new_binary(NodeKind::Lt, add(token)?, node);
+        } else if tokenize::consume_ops(token, tokenize::ReservedKind::LargerEqual) {
+            node = new_binary(NodeKind::Le, add(token)?, node);
+        } else {
+            break;
+        }
+    }
+    Ok(node)
+}
+
+// add = mul ("+" mul | "-" mul)*
+pub fn add(token: &mut tokenize::Token) -> Result<Node, Box<dyn std::error::Error>> {
     let mut node = mul(token)?;
 
     loop {
@@ -76,7 +128,7 @@ fn unary(token: &mut tokenize::Token) -> Result<Node, Box<dyn std::error::Error>
         return unary(token);
     }
     if tokenize::consume_ops(token, tokenize::ReservedKind::Minus) {
-        return Ok(new_binary(NodeKind::Sub, new_num(0), unary(token)?));
+        return Ok(new_unary(NodeKind::Neg, unary(token)?));
     }
     primary(token)
 }

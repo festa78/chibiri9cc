@@ -27,6 +27,12 @@ pub enum ReservedKind {
     Div,
     ParenLeft,
     ParenRight,
+    Equal,
+    NotEqual,
+    Less,
+    LessEqual,
+    Larger,
+    LargerEqual,
 }
 
 impl ReservedKind {
@@ -38,6 +44,12 @@ impl ReservedKind {
             ReservedKind::Div => 1,
             ReservedKind::ParenLeft => 1,
             ReservedKind::ParenRight => 1,
+            ReservedKind::Equal => 2,
+            ReservedKind::NotEqual => 2,
+            ReservedKind::Less => 1,
+            ReservedKind::LessEqual => 2,
+            ReservedKind::Larger => 1,
+            ReservedKind::LargerEqual => 2,
         }
     }
 
@@ -49,6 +61,12 @@ impl ReservedKind {
             ReservedKind::Div => '/'.to_string(),
             ReservedKind::ParenLeft => '('.to_string(),
             ReservedKind::ParenRight => ')'.to_string(),
+            ReservedKind::Equal => "==".to_string(),
+            ReservedKind::NotEqual => "!=".to_string(),
+            ReservedKind::Less => '<'.to_string(),
+            ReservedKind::LessEqual => "<=".to_string(),
+            ReservedKind::Larger => '>'.to_string(),
+            ReservedKind::LargerEqual => ">=".to_string(),
         }
     }
 }
@@ -137,6 +155,22 @@ fn pop_if_ops(chars: &mut std::iter::Peekable<std::str::Chars>) -> Option<Reserv
         Some('/') => Some(ReservedKind::Div),
         Some('(') => Some(ReservedKind::ParenLeft),
         Some(')') => Some(ReservedKind::ParenRight),
+        Some('=') => match chars.next() {
+            Some('=') => Some(ReservedKind::Equal),
+            _ => None,
+        },
+        Some('!') => match chars.next() {
+            Some('=') => Some(ReservedKind::NotEqual),
+            _ => None,
+        },
+        Some('<') => match chars.next() {
+            Some('=') => Some(ReservedKind::LessEqual),
+            _ => Some(ReservedKind::Less),
+        },
+        Some('>') => match chars.next() {
+            Some('=') => Some(ReservedKind::LargerEqual),
+            _ => Some(ReservedKind::Larger),
+        },
         _ => None,
     }
 }
