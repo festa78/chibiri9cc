@@ -54,20 +54,31 @@ pub fn expr(token: &mut tokenize::Token) -> Result<Node, Box<dyn std::error::Err
     Ok(node)
 }
 
-// mul = primary ("*" primary | "/" primary)*
+// mul = unary ("*" unary | "/" unary)*
 fn mul(token: &mut tokenize::Token) -> Result<Node, Box<dyn std::error::Error>> {
-    let mut node = primary(token)?;
+    let mut node = unary(token)?;
 
     loop {
         if tokenize::consume_ops(token, tokenize::ReservedKind::Mul) {
-            node = new_binary(NodeKind::Mul, node, primary(token)?);
+            node = new_binary(NodeKind::Mul, node, unary(token)?);
         } else if tokenize::consume_ops(token, tokenize::ReservedKind::Div) {
-            node = new_binary(NodeKind::Div, node, primary(token)?);
+            node = new_binary(NodeKind::Div, node, unary(token)?);
         } else {
             break;
         }
     }
     Ok(node)
+}
+
+// unary = ("+" | "-")? unary
+fn unary(token: &mut tokenize::Token) -> Result<Node, Box<dyn std::error::Error>> {
+    if tokenize::consume_ops(token, tokenize::ReservedKind::Plus) {
+        return unary(token);
+    }
+    if tokenize::consume_ops(token, tokenize::ReservedKind::Minus) {
+        return Ok(new_binary(NodeKind::Sub, new_num(0), unary(token)?));
+    }
+    primary(token)
 }
 
 // primary = "(" expr ")" | num
