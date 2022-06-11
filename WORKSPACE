@@ -26,9 +26,45 @@ load("@rules_rust//crate_universe:defs.bzl", "crates_repository")
 crates_repository(
     name = "crate_index",
     lockfile = "//:Cargo.Bazel.lock",
-    manifests = ["//:Cargo.toml"],
+    manifests = [
+        "//:Cargo.toml",
+        "//chibiri9cc_lib:Cargo.toml",
+        "//chibiri9cc_server:Cargo.toml",
+    ],
 )
 
 load("@crate_index//:defs.bzl", "crate_repositories")
 
 crate_repositories()
+
+# rules_docker
+http_archive(
+    name = "io_bazel_rules_docker",
+    sha256 = "27d53c1d646fc9537a70427ad7b034734d08a9c38924cc6357cc973fed300820",
+    strip_prefix = "rules_docker-0.24.0",
+    urls = ["https://github.com/bazelbuild/rules_docker/releases/download/v0.24.0/rules_docker-v0.24.0.tar.gz"],
+)
+
+load(
+    "@io_bazel_rules_docker//repositories:repositories.bzl",
+    container_repositories = "repositories",
+)
+
+container_repositories()
+
+load("@io_bazel_rules_docker//repositories:deps.bzl", container_deps = "deps")
+
+container_deps()
+
+load(
+    "@io_bazel_rules_docker//container:container.bzl",
+    "container_pull",
+)
+
+# rules_docker rust
+load(
+    "@io_bazel_rules_docker//rust:image.bzl",
+    _rust_image_repos = "repositories",
+)
+
+_rust_image_repos()

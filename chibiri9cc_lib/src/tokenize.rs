@@ -36,7 +36,7 @@ pub enum ReservedKind {
 }
 
 impl ReservedKind {
-    pub fn len(&self) -> usize {
+    pub fn length(&self) -> usize {
         match *self {
             ReservedKind::Plus => 1,
             ReservedKind::Minus => 1,
@@ -241,7 +241,7 @@ pub fn tokenize(
     }
 
     if let Some(ops) = pop_if_ops(&mut chars) {
-        let next_location = start_index + ops.len();
+        let next_location = start_index + ops.length();
         let next_token = tokenize(std::rc::Rc::clone(&statement), next_location)?;
         let ops_str = ops.str();
         return Ok(Token {

@@ -1,5 +1,6 @@
 [workspace]
 
 members = [
-  "chibiri9cc",
+  "chibiri9cc_lib",
+  "chibiri9cc_server",
 ]
