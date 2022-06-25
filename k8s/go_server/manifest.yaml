@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: goapi
+  labels:
+    app: goapi
+spec:
+  selector:
+    app: goapi
+  ports:
+    - protocol: TCP
+      port: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: goapi
+  labels:
+    app: goapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: goapi
+  template:
+    metadata:
+      labels:
+        app: goapi
+    spec:
+      containers:
+        - name: goapi
+          image: bazel/go_server:go_server
+          imagePullPolicy: Never
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 8080
+              protocol: TCP

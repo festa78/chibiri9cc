@@ -1,39 +1,38 @@
-use actix_web::{post, App, HttpResponse, HttpServer, Responder};
+use actix_web::{get, post, App, HttpResponse, HttpServer, Responder};
 
-// use chibiri9cc_lib::{gen, parser, tokenize};
+use chibiri9cc_lib::{gen, parser, tokenize};
 
-#[post("/")]
+#[get("/")]
+async fn hello() -> impl Responder {
+    HttpResponse::Ok().body("Hello compiler api\n")
+}
+
+#[post("/compile")]
 async fn compile(req_body: String) -> impl Responder {
-  HttpResponse::Ok().body(req_body)
-  // let statement = args[1].to_string();
-  // let token = tokenize::tokenize(std::rc::Rc::new(statement), 0);
-  // if let Err(err) = token {
-  //   eprint!("{}", err);
-  //   std::process::exit(1);
-  // }
+    let token = tokenize::tokenize(std::rc::Rc::new(req_body), 0);
+    if let Err(err) = token {
+        return HttpResponse::BadRequest().body(format!("{}", err));
+    }
 
-  // let node = parser::expr(&mut token.unwrap());
-  // if let Err(err) = node {
-  //   eprint!("{}", err);
-  //   std::process::exit(1);
-  // }
+    let node = parser::expr(&mut token.unwrap());
+    if let Err(err) = node {
+        return HttpResponse::BadRequest().body(format!("{}", err));
+    }
 
-  // // println!(".intel_syntax noprefix");
-  // println!("  .globl main");
-  // println!("main:");
+    let mut generated = String::new();
+    generated += "  .globl main\n";
+    generated += "main:\n";
 
-  // if let Err(err) = gen::gen(node.unwrap()) {
-  //   eprint!("{}", err);
-  //   std::process::exit(1);
-  // }
+    generated += &gen::gen(node.unwrap()).unwrap();
 
-  // println!("  ret");
+    generated += "  ret\n";
+    HttpResponse::Ok().body(generated)
 }
 
 #[actix_web::main]
 async fn main() -> std::result::Result<(), std::io::Error> {
-  HttpServer::new(|| App::new().service(compile))
-    .bind(("127.0.0.1", 8080))?
-    .run()
-    .await
+    HttpServer::new(|| App::new().service(compile).service(hello))
+        .bind(("0.0.0.0", 3000))?
+        .run()
+        .await
 }

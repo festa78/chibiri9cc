@@ -52,6 +52,7 @@ load(
 
 container_repositories()
 
+# NOTE: it installs go-v0.24.2.tar.gz which contains go v1.15.2.
 load("@io_bazel_rules_docker//repositories:deps.bzl", container_deps = "deps")
 
 container_deps()
@@ -68,3 +69,11 @@ load(
 )
 
 _rust_image_repos()
+
+# rules_docker go
+load(
+    "@io_bazel_rules_docker//go:image.bzl",
+    _go_image_repos = "repositories",
+)
+
+_go_image_repos()

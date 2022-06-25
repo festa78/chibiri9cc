@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: compilerapi
+  labels:
+    app: compilerapi
+spec:
+  selector:
+    app: compilerapi
+  ports:
+    - protocol: TCP
+      port: 3000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: compilerapi
+  labels:
+    app: compilerapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: compilerapi
+  template:
+    metadata:
+      labels:
+        app: compilerapi
+    spec:
+      containers:
+        - name: compilerapi
+          image: bazel/chibiri9cc_server:chibiri9cc_server
+          # image: go_server:latest
+          imagePullPolicy: Never
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 3000
+              protocol: TCP
