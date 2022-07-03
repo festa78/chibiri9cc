@@ -61,6 +61,7 @@ load(
     "@io_bazel_rules_docker//container:container.bzl",
     "container_pull",
 )
+load("@io_bazel_rules_docker//contrib:dockerfile_build.bzl", "dockerfile_image")
 
 # rules_docker rust
 load(
@@ -77,3 +78,8 @@ load(
 )
 
 _go_image_repos()
+
+dockerfile_image(
+    name = "golang_image_dockerfile",
+    dockerfile = "//go_server:Dockerfile",
+)

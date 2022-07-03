@@ -7,22 +7,22 @@ import (
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello, World in go")
+	fmt.Fprintf(w, "Hello, World in go\n")
 
-	resp, err := http.Get("nginx-srv/compilerapi")
+	resp, err := http.Get("http://nginx-srv/compilerapi/")
 	if err != nil {
-		_ = fmt.Errorf("fail on compilerapi: %w", err)
+		fmt.Fprintf(w, fmt.Sprintf("fail on compilerapi: %s\n", err))
 		return
 	}
 
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		_ = fmt.Errorf("fail on compilerapi: %w", err)
+		fmt.Fprintf(w, fmt.Sprintf("fail on compilerapi: %s\n", err))
 		return
 	}
 
-	fmt.Println(string(body))
+	fmt.Fprintf(w, string(body))
 }
 
 func main() {
