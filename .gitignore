@@ -3,3 +3,4 @@
 tmp*
 bazel-*
 Cargo.lock
+.vscode
