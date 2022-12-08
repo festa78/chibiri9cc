@@ -30,7 +30,6 @@ spec:
       containers:
         - name: compilerapi
           image: bazel/chibiri9cc_server:chibiri9cc_server
-          # image: go_server:latest
           imagePullPolicy: Never
           resources:
             limits:
